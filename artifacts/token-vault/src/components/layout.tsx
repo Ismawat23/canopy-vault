@@ -4,7 +4,10 @@ import {
   LayoutDashboard, 
   Lock, 
   History,
-  Wallet
+  Wallet,
+  PieChart,
+  Timer,
+  Droplets
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -17,7 +20,11 @@ export function Layout({ children }: LayoutProps) {
 
   const navigation = [
     { name: "Dashboard", href: "/", icon: LayoutDashboard },
+    { name: "Portfolio", href: "/portfolio", icon: PieChart },
     { name: "Vaults", href: "/vaults", icon: Lock },
+    { name: "Vesting", href: "/vesting", icon: Timer },
+    { name: "Liquidity", href: "/liquidity", icon: Droplets },
+    { name: "Wallets", href: "/wallets", icon: Wallet },
     { name: "Transactions", href: "/transactions", icon: History },
   ];
 

@@ -3,12 +3,11 @@
  * Do not edit manually.
  * Api
  * Token Vault API specification
- * OpenAPI spec version: 0.1.0
+ * OpenAPI spec version: 0.2.0
  */
 import * as zod from "zod";
 
 /**
- * Returns server health status
  * @summary Health check
  */
 export const HealthCheckResponse = zod.object({
@@ -24,6 +23,7 @@ export const ListVaultsQueryParams = zod.object({
   status: zod
     .enum(["active", "matured", "withdrawn", "all"])
     .default(listVaultsQueryStatusDefault),
+  chain: zod.coerce.string().optional(),
 });
 
 export const ListVaultsResponseItem = zod.object({
@@ -35,6 +35,8 @@ export const ListVaultsResponseItem = zod.object({
   earnedRewards: zod.string(),
   lockDays: zod.number(),
   status: zod.enum(["active", "matured", "withdrawn"]),
+  chain: zod.string(),
+  contractAddress: zod.string().nullish(),
   depositedAt: zod.coerce.date(),
   maturesAt: zod.coerce.date(),
   withdrawnAt: zod.coerce.date().nullish(),
@@ -51,6 +53,8 @@ export const CreateVaultBody = zod.object({
   tokenSymbol: zod.string(),
   amount: zod.string(),
   lockDays: zod.number().min(1),
+  chain: zod.string(),
+  contractAddress: zod.string().optional(),
 });
 
 /**
@@ -69,6 +73,8 @@ export const GetVaultResponse = zod.object({
   earnedRewards: zod.string(),
   lockDays: zod.number(),
   status: zod.enum(["active", "matured", "withdrawn"]),
+  chain: zod.string(),
+  contractAddress: zod.string().nullish(),
   depositedAt: zod.coerce.date(),
   maturesAt: zod.coerce.date(),
   withdrawnAt: zod.coerce.date().nullish(),
@@ -91,6 +97,8 @@ export const WithdrawVaultResponse = zod.object({
   earnedRewards: zod.string(),
   lockDays: zod.number(),
   status: zod.enum(["active", "matured", "withdrawn"]),
+  chain: zod.string(),
+  contractAddress: zod.string().nullish(),
   depositedAt: zod.coerce.date(),
   maturesAt: zod.coerce.date(),
   withdrawnAt: zod.coerce.date().nullish(),
@@ -133,6 +141,8 @@ export const GetDashboardSummaryResponse = zod.object({
   maturedVaults: zod.number(),
   avgLockPeriod: zod.number(),
   totalDeposits: zod.number(),
+  totalChains: zod.number(),
+  totalWallets: zod.number(),
 });
 
 /**
@@ -166,4 +176,267 @@ export const GetRecentActivityResponseItem = zod.object({
 });
 export const GetRecentActivityResponse = zod.array(
   GetRecentActivityResponseItem,
+);
+
+/**
+ * @summary List all connected wallets
+ */
+export const ListWalletsResponseItem = zod.object({
+  id: zod.number(),
+  label: zod.string(),
+  address: zod.string(),
+  chain: zod.string(),
+  balance: zod.string(),
+  createdAt: zod.coerce.date(),
+});
+export const ListWalletsResponse = zod.array(ListWalletsResponseItem);
+
+/**
+ * @summary Add a wallet
+ */
+export const CreateWalletBody = zod.object({
+  label: zod.string(),
+  address: zod.string(),
+  chain: zod.string(),
+  balance: zod.string(),
+});
+
+/**
+ * @summary Remove a wallet
+ */
+export const DeleteWalletParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+/**
+ * @summary List all vesting schedules
+ */
+export const listVestingSchedulesQueryStatusDefault = `all`;
+
+export const ListVestingSchedulesQueryParams = zod.object({
+  status: zod
+    .enum(["active", "completed", "all"])
+    .default(listVestingSchedulesQueryStatusDefault),
+});
+
+export const ListVestingSchedulesResponseItem = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  beneficiary: zod.string(),
+  tokenSymbol: zod.string(),
+  totalAmount: zod.string(),
+  releasedAmount: zod.string(),
+  claimableAmount: zod.string(),
+  cliffDays: zod.number(),
+  vestingDays: zod.number(),
+  status: zod.enum(["active", "completed"]),
+  chain: zod.string(),
+  contractAddress: zod.string().nullish(),
+  startDate: zod.coerce.date(),
+  cliffDate: zod.coerce.date(),
+  endDate: zod.coerce.date(),
+  createdAt: zod.coerce.date(),
+});
+export const ListVestingSchedulesResponse = zod.array(
+  ListVestingSchedulesResponseItem,
+);
+
+/**
+ * @summary Create a vesting schedule
+ */
+export const createVestingScheduleBodyCliffDaysMin = 0;
+
+export const CreateVestingScheduleBody = zod.object({
+  name: zod.string(),
+  beneficiary: zod.string(),
+  tokenSymbol: zod.string(),
+  totalAmount: zod.string(),
+  cliffDays: zod.number().min(createVestingScheduleBodyCliffDaysMin),
+  vestingDays: zod.number().min(1),
+  chain: zod.string(),
+  contractAddress: zod.string().optional(),
+});
+
+/**
+ * @summary Get vesting schedule details
+ */
+export const GetVestingScheduleParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const GetVestingScheduleResponse = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  beneficiary: zod.string(),
+  tokenSymbol: zod.string(),
+  totalAmount: zod.string(),
+  releasedAmount: zod.string(),
+  claimableAmount: zod.string(),
+  cliffDays: zod.number(),
+  vestingDays: zod.number(),
+  status: zod.enum(["active", "completed"]),
+  chain: zod.string(),
+  contractAddress: zod.string().nullish(),
+  startDate: zod.coerce.date(),
+  cliffDate: zod.coerce.date(),
+  endDate: zod.coerce.date(),
+  createdAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Claim vested tokens
+ */
+export const ClaimVestingParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const ClaimVestingResponse = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  beneficiary: zod.string(),
+  tokenSymbol: zod.string(),
+  totalAmount: zod.string(),
+  releasedAmount: zod.string(),
+  claimableAmount: zod.string(),
+  cliffDays: zod.number(),
+  vestingDays: zod.number(),
+  status: zod.enum(["active", "completed"]),
+  chain: zod.string(),
+  contractAddress: zod.string().nullish(),
+  startDate: zod.coerce.date(),
+  cliffDate: zod.coerce.date(),
+  endDate: zod.coerce.date(),
+  createdAt: zod.coerce.date(),
+});
+
+/**
+ * @summary List all liquidity locks
+ */
+export const listLiquidityLocksQueryStatusDefault = `all`;
+
+export const ListLiquidityLocksQueryParams = zod.object({
+  status: zod
+    .enum(["locked", "unlocked", "all"])
+    .default(listLiquidityLocksQueryStatusDefault),
+});
+
+export const ListLiquidityLocksResponseItem = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  tokenPair: zod.string(),
+  dex: zod.string(),
+  chain: zod.string(),
+  lpTokenAmount: zod.string(),
+  lockDays: zod.number(),
+  status: zod.enum(["locked", "unlocked"]),
+  contractAddress: zod.string().nullish(),
+  lockedAt: zod.coerce.date(),
+  unlocksAt: zod.coerce.date(),
+  unlockedAt: zod.coerce.date().nullish(),
+  createdAt: zod.coerce.date(),
+});
+export const ListLiquidityLocksResponse = zod.array(
+  ListLiquidityLocksResponseItem,
+);
+
+/**
+ * @summary Lock liquidity tokens
+ */
+
+export const CreateLiquidityLockBody = zod.object({
+  name: zod.string(),
+  tokenPair: zod.string(),
+  dex: zod.string(),
+  chain: zod.string(),
+  lpTokenAmount: zod.string(),
+  lockDays: zod.number().min(1),
+  contractAddress: zod.string().optional(),
+});
+
+/**
+ * @summary Get liquidity lock details
+ */
+export const GetLiquidityLockParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const GetLiquidityLockResponse = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  tokenPair: zod.string(),
+  dex: zod.string(),
+  chain: zod.string(),
+  lpTokenAmount: zod.string(),
+  lockDays: zod.number(),
+  status: zod.enum(["locked", "unlocked"]),
+  contractAddress: zod.string().nullish(),
+  lockedAt: zod.coerce.date(),
+  unlocksAt: zod.coerce.date(),
+  unlockedAt: zod.coerce.date().nullish(),
+  createdAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Unlock liquidity (if lock period passed)
+ */
+export const UnlockLiquidityParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UnlockLiquidityResponse = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  tokenPair: zod.string(),
+  dex: zod.string(),
+  chain: zod.string(),
+  lpTokenAmount: zod.string(),
+  lockDays: zod.number(),
+  status: zod.enum(["locked", "unlocked"]),
+  contractAddress: zod.string().nullish(),
+  lockedAt: zod.coerce.date(),
+  unlocksAt: zod.coerce.date(),
+  unlockedAt: zod.coerce.date().nullish(),
+  createdAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Get full portfolio summary across all chains
+ */
+export const GetPortfolioSummaryResponse = zod.object({
+  totalValue: zod.string(),
+  totalLocked: zod.string(),
+  totalVesting: zod.string(),
+  totalLiquidity: zod.string(),
+  totalRewards: zod.string(),
+  activeChains: zod.number(),
+  connectedWallets: zod.number(),
+  activePositions: zod.number(),
+});
+
+/**
+ * @summary Get portfolio breakdown by chain
+ */
+export const GetPortfolioByChainResponseItem = zod.object({
+  chain: zod.string(),
+  totalValue: zod.string(),
+  vaultCount: zod.number(),
+  vestingCount: zod.number(),
+  liquidityCount: zod.number(),
+});
+export const GetPortfolioByChainResponse = zod.array(
+  GetPortfolioByChainResponseItem,
+);
+
+/**
+ * @summary Get token allocation breakdown
+ */
+export const GetPortfolioAllocationsResponseItem = zod.object({
+  tokenSymbol: zod.string(),
+  totalAmount: zod.string(),
+  percentage: zod.number(),
+  lockedInVaults: zod.string(),
+  inVesting: zod.string(),
+});
+export const GetPortfolioAllocationsResponse = zod.array(
+  GetPortfolioAllocationsResponseItem,
 );

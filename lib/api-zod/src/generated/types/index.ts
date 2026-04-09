@@ -3,21 +3,36 @@
  * Do not edit manually.
  * Api
  * Token Vault API specification
- * OpenAPI spec version: 0.1.0
+ * OpenAPI spec version: 0.2.0
  */
 
 export * from "./activityItem";
 export * from "./activityItemType";
+export * from "./chainPortfolio";
+export * from "./createLiquidityLockBody";
 export * from "./createVaultBody";
+export * from "./createVestingScheduleBody";
+export * from "./createWalletBody";
 export * from "./dashboardSummary";
 export * from "./getRecentActivityParams";
 export * from "./healthStatus";
+export * from "./liquidityLock";
+export * from "./liquidityLockStatus";
+export * from "./listLiquidityLocksParams";
+export * from "./listLiquidityLocksStatus";
 export * from "./listTransactionsParams";
 export * from "./listTransactionsType";
 export * from "./listVaultsParams";
 export * from "./listVaultsStatus";
+export * from "./listVestingSchedulesParams";
+export * from "./listVestingSchedulesStatus";
+export * from "./portfolioSummary";
+export * from "./tokenAllocation";
 export * from "./transaction";
 export * from "./transactionType";
 export * from "./vault";
 export * from "./vaultDistribution";
 export * from "./vaultStatus";
+export * from "./vestingSchedule";
+export * from "./vestingScheduleStatus";
+export * from "./wallet";

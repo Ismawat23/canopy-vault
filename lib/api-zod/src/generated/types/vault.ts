@@ -3,7 +3,7 @@
  * Do not edit manually.
  * Api
  * Token Vault API specification
- * OpenAPI spec version: 0.1.0
+ * OpenAPI spec version: 0.2.0
  */
 import type { VaultStatus } from "./vaultStatus";
 
@@ -16,6 +16,8 @@ export interface Vault {
   earnedRewards: string;
   lockDays: number;
   status: VaultStatus;
+  chain: string;
+  contractAddress?: string | null;
   depositedAt: Date;
   maturesAt: Date;
   withdrawnAt?: Date | null;

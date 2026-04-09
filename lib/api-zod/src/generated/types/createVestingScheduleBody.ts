@@ -6,12 +6,15 @@
  * OpenAPI spec version: 0.2.0
  */
 
-export interface CreateVaultBody {
+export interface CreateVestingScheduleBody {
   name: string;
+  beneficiary: string;
   tokenSymbol: string;
-  amount: string;
+  totalAmount: string;
+  /** @minimum 0 */
+  cliffDays: number;
   /** @minimum 1 */
-  lockDays: number;
+  vestingDays: number;
   chain: string;
   contractAddress?: string;
 }

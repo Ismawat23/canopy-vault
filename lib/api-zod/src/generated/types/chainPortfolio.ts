@@ -6,8 +6,10 @@
  * OpenAPI spec version: 0.2.0
  */
 
-export interface VaultDistribution {
-  lockPeriod: string;
-  count: number;
+export interface ChainPortfolio {
+  chain: string;
   totalValue: string;
+  vaultCount: number;
+  vestingCount: number;
+  liquidityCount: number;
 }

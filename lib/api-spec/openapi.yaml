@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
-  version: 0.1.0
+  version: 0.2.0
   description: Token Vault API specification
 servers:
   - url: /api
@@ -16,13 +16,20 @@ tags:
     description: Transaction history
   - name: dashboard
     description: Dashboard summaries
+  - name: wallets
+    description: Secure wallet management
+  - name: vesting
+    description: Token vesting schedules
+  - name: liquidity
+    description: Liquidity lock management
+  - name: portfolio
+    description: Portfolio tracking
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -43,6 +50,10 @@ paths:
             type: string
             enum: [active, matured, withdrawn, all]
             default: all
+        - name: chain
+          in: query
+          schema:
+            type: string
       responses:
         "200":
           description: List of vaults
@@ -195,6 +206,264 @@ paths:
                 items:
                   $ref: "#/components/schemas/ActivityItem"
 
+  /wallets:
+    get:
+      operationId: listWallets
+      tags: [wallets]
+      summary: List all connected wallets
+      responses:
+        "200":
+          description: Wallet list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Wallet"
+    post:
+      operationId: createWallet
+      tags: [wallets]
+      summary: Add a wallet
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateWalletBody"
+      responses:
+        "201":
+          description: Wallet created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Wallet"
+
+  /wallets/{id}:
+    delete:
+      operationId: deleteWallet
+      tags: [wallets]
+      summary: Remove a wallet
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Wallet removed
+        "404":
+          description: Wallet not found
+
+  /vesting:
+    get:
+      operationId: listVestingSchedules
+      tags: [vesting]
+      summary: List all vesting schedules
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, completed, all]
+            default: all
+      responses:
+        "200":
+          description: Vesting schedule list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/VestingSchedule"
+    post:
+      operationId: createVestingSchedule
+      tags: [vesting]
+      summary: Create a vesting schedule
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateVestingScheduleBody"
+      responses:
+        "201":
+          description: Vesting schedule created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VestingSchedule"
+
+  /vesting/{id}:
+    get:
+      operationId: getVestingSchedule
+      tags: [vesting]
+      summary: Get vesting schedule details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Vesting schedule details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VestingSchedule"
+        "404":
+          description: Not found
+
+  /vesting/{id}/claim:
+    post:
+      operationId: claimVesting
+      tags: [vesting]
+      summary: Claim vested tokens
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Claim result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VestingSchedule"
+        "400":
+          description: Nothing to claim
+        "404":
+          description: Not found
+
+  /liquidity:
+    get:
+      operationId: listLiquidityLocks
+      tags: [liquidity]
+      summary: List all liquidity locks
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [locked, unlocked, all]
+            default: all
+      responses:
+        "200":
+          description: Liquidity lock list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LiquidityLock"
+    post:
+      operationId: createLiquidityLock
+      tags: [liquidity]
+      summary: Lock liquidity tokens
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateLiquidityLockBody"
+      responses:
+        "201":
+          description: Lock created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LiquidityLock"
+
+  /liquidity/{id}:
+    get:
+      operationId: getLiquidityLock
+      tags: [liquidity]
+      summary: Get liquidity lock details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Lock details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LiquidityLock"
+        "404":
+          description: Not found
+
+  /liquidity/{id}/unlock:
+    post:
+      operationId: unlockLiquidity
+      tags: [liquidity]
+      summary: Unlock liquidity (if lock period passed)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Unlock result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LiquidityLock"
+        "400":
+          description: Still locked
+        "404":
+          description: Not found
+
+  /portfolio/summary:
+    get:
+      operationId: getPortfolioSummary
+      tags: [portfolio]
+      summary: Get full portfolio summary across all chains
+      responses:
+        "200":
+          description: Portfolio summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PortfolioSummary"
+
+  /portfolio/by-chain:
+    get:
+      operationId: getPortfolioByChain
+      tags: [portfolio]
+      summary: Get portfolio breakdown by chain
+      responses:
+        "200":
+          description: Per-chain breakdown
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ChainPortfolio"
+
+  /portfolio/allocations:
+    get:
+      operationId: getPortfolioAllocations
+      tags: [portfolio]
+      summary: Get token allocation breakdown
+      responses:
+        "200":
+          description: Token allocations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TokenAllocation"
+
 components:
   schemas:
     HealthStatus:
@@ -225,6 +494,11 @@ components:
         status:
           type: string
           enum: [active, matured, withdrawn]
+        chain:
+          type: string
+        contractAddress:
+          type: string
+          nullable: true
         depositedAt:
           type: string
           format: date-time
@@ -247,6 +521,7 @@ components:
         - earnedRewards
         - lockDays
         - status
+        - chain
         - depositedAt
         - maturesAt
         - createdAt
@@ -263,11 +538,16 @@ components:
         lockDays:
           type: integer
           minimum: 1
+        chain:
+          type: string
+        contractAddress:
+          type: string
       required:
         - name
         - tokenSymbol
         - amount
         - lockDays
+        - chain
 
     Transaction:
       type: object
@@ -312,6 +592,10 @@ components:
           type: number
         totalDeposits:
           type: integer
+        totalChains:
+          type: integer
+        totalWallets:
+          type: integer
       required:
         - totalValueLocked
         - activeVaults
@@ -319,6 +603,8 @@ components:
         - maturedVaults
         - avgLockPeriod
         - totalDeposits
+        - totalChains
+        - totalWallets
 
     VaultDistribution:
       type: object
@@ -358,3 +644,276 @@ components:
         - tokenSymbol
         - amount
         - timestamp
+
+    Wallet:
+      type: object
+      properties:
+        id:
+          type: integer
+        label:
+          type: string
+        address:
+          type: string
+        chain:
+          type: string
+        balance:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - label
+        - address
+        - chain
+        - balance
+        - createdAt
+
+    CreateWalletBody:
+      type: object
+      properties:
+        label:
+          type: string
+        address:
+          type: string
+        chain:
+          type: string
+        balance:
+          type: string
+      required:
+        - label
+        - address
+        - chain
+        - balance
+
+    VestingSchedule:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        beneficiary:
+          type: string
+        tokenSymbol:
+          type: string
+        totalAmount:
+          type: string
+        releasedAmount:
+          type: string
+        claimableAmount:
+          type: string
+        cliffDays:
+          type: integer
+        vestingDays:
+          type: integer
+        status:
+          type: string
+          enum: [active, completed]
+        chain:
+          type: string
+        contractAddress:
+          type: string
+          nullable: true
+        startDate:
+          type: string
+          format: date-time
+        cliffDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - beneficiary
+        - tokenSymbol
+        - totalAmount
+        - releasedAmount
+        - claimableAmount
+        - cliffDays
+        - vestingDays
+        - status
+        - chain
+        - startDate
+        - cliffDate
+        - endDate
+        - createdAt
+
+    CreateVestingScheduleBody:
+      type: object
+      properties:
+        name:
+          type: string
+        beneficiary:
+          type: string
+        tokenSymbol:
+          type: string
+        totalAmount:
+          type: string
+        cliffDays:
+          type: integer
+          minimum: 0
+        vestingDays:
+          type: integer
+          minimum: 1
+        chain:
+          type: string
+        contractAddress:
+          type: string
+      required:
+        - name
+        - beneficiary
+        - tokenSymbol
+        - totalAmount
+        - cliffDays
+        - vestingDays
+        - chain
+
+    LiquidityLock:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        tokenPair:
+          type: string
+        dex:
+          type: string
+        chain:
+          type: string
+        lpTokenAmount:
+          type: string
+        lockDays:
+          type: integer
+        status:
+          type: string
+          enum: [locked, unlocked]
+        contractAddress:
+          type: string
+          nullable: true
+        lockedAt:
+          type: string
+          format: date-time
+        unlocksAt:
+          type: string
+          format: date-time
+        unlockedAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - tokenPair
+        - dex
+        - chain
+        - lpTokenAmount
+        - lockDays
+        - status
+        - lockedAt
+        - unlocksAt
+        - createdAt
+
+    CreateLiquidityLockBody:
+      type: object
+      properties:
+        name:
+          type: string
+        tokenPair:
+          type: string
+        dex:
+          type: string
+        chain:
+          type: string
+        lpTokenAmount:
+          type: string
+        lockDays:
+          type: integer
+          minimum: 1
+        contractAddress:
+          type: string
+      required:
+        - name
+        - tokenPair
+        - dex
+        - chain
+        - lpTokenAmount
+        - lockDays
+
+    PortfolioSummary:
+      type: object
+      properties:
+        totalValue:
+          type: string
+        totalLocked:
+          type: string
+        totalVesting:
+          type: string
+        totalLiquidity:
+          type: string
+        totalRewards:
+          type: string
+        activeChains:
+          type: integer
+        connectedWallets:
+          type: integer
+        activePositions:
+          type: integer
+      required:
+        - totalValue
+        - totalLocked
+        - totalVesting
+        - totalLiquidity
+        - totalRewards
+        - activeChains
+        - connectedWallets
+        - activePositions
+
+    ChainPortfolio:
+      type: object
+      properties:
+        chain:
+          type: string
+        totalValue:
+          type: string
+        vaultCount:
+          type: integer
+        vestingCount:
+          type: integer
+        liquidityCount:
+          type: integer
+      required:
+        - chain
+        - totalValue
+        - vaultCount
+        - vestingCount
+        - liquidityCount
+
+    TokenAllocation:
+      type: object
+      properties:
+        tokenSymbol:
+          type: string
+        totalAmount:
+          type: string
+        percentage:
+          type: number
+        lockedInVaults:
+          type: string
+        inVesting:
+          type: string
+      required:
+        - tokenSymbol
+        - totalAmount
+        - percentage
+        - lockedInVaults
+        - inVesting

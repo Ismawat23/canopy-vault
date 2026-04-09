@@ -6,12 +6,13 @@
  * OpenAPI spec version: 0.2.0
  */
 
-export interface CreateVaultBody {
+export interface CreateLiquidityLockBody {
   name: string;
-  tokenSymbol: string;
-  amount: string;
+  tokenPair: string;
+  dex: string;
+  chain: string;
+  lpTokenAmount: string;
   /** @minimum 1 */
   lockDays: number;
-  chain: string;
   contractAddress?: string;
 }

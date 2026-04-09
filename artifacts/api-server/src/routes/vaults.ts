@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { eq, desc, sql } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { db, vaultsTable, transactionsTable } from "@workspace/db";
 import {
   ListVaultsQueryParams,
@@ -42,21 +42,28 @@ router.get("/vaults", async (req, res): Promise<void> => {
     return;
   }
 
-  let vaults = await db
+  const vaults = await db
     .select()
     .from(vaultsTable)
     .orderBy(desc(vaultsTable.createdAt));
 
-  const enriched = vaults.map((v) => ({
+  let enriched = vaults.map((v) => ({
     ...v,
     status: checkVaultStatus(v),
     earnedRewards: computeEarnedRewards(v.amount, v.rewardRate, v.depositedAt),
   }));
 
   const status = params.data.status ?? "all";
-  const filtered = status === "all" ? enriched : enriched.filter((v) => v.status === status);
+  if (status !== "all") {
+    enriched = enriched.filter((v) => v.status === status);
+  }
 
-  res.json(ListVaultsResponse.parse(filtered));
+  const chain = params.data.chain;
+  if (chain) {
+    enriched = enriched.filter((v) => v.chain.toLowerCase() === chain.toLowerCase());
+  }
+
+  res.json(ListVaultsResponse.parse(enriched));
 });
 
 router.post("/vaults", async (req, res): Promise<void> => {
@@ -66,7 +73,7 @@ router.post("/vaults", async (req, res): Promise<void> => {
     return;
   }
 
-  const { name, tokenSymbol, amount, lockDays } = parsed.data;
+  const { name, tokenSymbol, amount, lockDays, chain, contractAddress } = parsed.data;
   const rewardRate = computeRewardRate(lockDays);
   const now = new Date();
   const maturesAt = new Date(now.getTime() + lockDays * 24 * 60 * 60 * 1000);
@@ -81,6 +88,8 @@ router.post("/vaults", async (req, res): Promise<void> => {
       rewardRate,
       lockDays,
       maturesAt,
+      chain: chain ?? "Ethereum",
+      contractAddress: contractAddress ?? null,
     })
     .returning();
 
@@ -159,11 +168,7 @@ router.post("/vaults/:id/withdraw", async (req, res): Promise<void> => {
 
   const [updated] = await db
     .update(vaultsTable)
-    .set({
-      status: "withdrawn",
-      withdrawnAt: now,
-      earnedRewards,
-    })
+    .set({ status: "withdrawn", withdrawnAt: now, earnedRewards })
     .where(eq(vaultsTable.id, params.data.id))
     .returning();
 

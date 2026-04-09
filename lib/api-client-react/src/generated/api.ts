@@ -3,7 +3,7 @@
  * Do not edit manually.
  * Api
  * Token Vault API specification
- * OpenAPI spec version: 0.1.0
+ * OpenAPI spec version: 0.2.0
  */
 import { useMutation, useQuery } from "@tanstack/react-query";
 import type {
@@ -18,15 +18,26 @@ import type {
 
 import type {
   ActivityItem,
+  ChainPortfolio,
+  CreateLiquidityLockBody,
   CreateVaultBody,
+  CreateVestingScheduleBody,
+  CreateWalletBody,
   DashboardSummary,
   GetRecentActivityParams,
   HealthStatus,
+  LiquidityLock,
+  ListLiquidityLocksParams,
   ListTransactionsParams,
   ListVaultsParams,
+  ListVestingSchedulesParams,
+  PortfolioSummary,
+  TokenAllocation,
   Transaction,
   Vault,
   VaultDistribution,
+  VestingSchedule,
+  Wallet,
 } from "./api.schemas";
 
 import { customFetch } from "../custom-fetch";
@@ -39,7 +50,6 @@ type Awaited<O> = O extends AwaitedInput<infer T> ? T : never;
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 /**
- * Returns server health status
  * @summary Health check
  */
 export const getHealthCheckUrl = () => {
@@ -799,6 +809,1187 @@ export function useGetRecentActivity<
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getGetRecentActivityQueryOptions(params, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary List all connected wallets
+ */
+export const getListWalletsUrl = () => {
+  return `/api/wallets`;
+};
+
+export const listWallets = async (options?: RequestInit): Promise<Wallet[]> => {
+  return customFetch<Wallet[]>(getListWalletsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListWalletsQueryKey = () => {
+  return [`/api/wallets`] as const;
+};
+
+export const getListWalletsQueryOptions = <
+  TData = Awaited<ReturnType<typeof listWallets>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listWallets>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListWalletsQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof listWallets>>> = ({
+    signal,
+  }) => listWallets({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listWallets>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListWalletsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listWallets>>
+>;
+export type ListWalletsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List all connected wallets
+ */
+
+export function useListWallets<
+  TData = Awaited<ReturnType<typeof listWallets>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listWallets>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListWalletsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Add a wallet
+ */
+export const getCreateWalletUrl = () => {
+  return `/api/wallets`;
+};
+
+export const createWallet = async (
+  createWalletBody: CreateWalletBody,
+  options?: RequestInit,
+): Promise<Wallet> => {
+  return customFetch<Wallet>(getCreateWalletUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createWalletBody),
+  });
+};
+
+export const getCreateWalletMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createWallet>>,
+    TError,
+    { data: BodyType<CreateWalletBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createWallet>>,
+  TError,
+  { data: BodyType<CreateWalletBody> },
+  TContext
+> => {
+  const mutationKey = ["createWallet"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createWallet>>,
+    { data: BodyType<CreateWalletBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createWallet(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateWalletMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createWallet>>
+>;
+export type CreateWalletMutationBody = BodyType<CreateWalletBody>;
+export type CreateWalletMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Add a wallet
+ */
+export const useCreateWallet = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createWallet>>,
+    TError,
+    { data: BodyType<CreateWalletBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createWallet>>,
+  TError,
+  { data: BodyType<CreateWalletBody> },
+  TContext
+> => {
+  return useMutation(getCreateWalletMutationOptions(options));
+};
+
+/**
+ * @summary Remove a wallet
+ */
+export const getDeleteWalletUrl = (id: number) => {
+  return `/api/wallets/${id}`;
+};
+
+export const deleteWallet = async (
+  id: number,
+  options?: RequestInit,
+): Promise<void> => {
+  return customFetch<void>(getDeleteWalletUrl(id), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeleteWalletMutationOptions = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteWallet>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteWallet>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ["deleteWallet"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteWallet>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return deleteWallet(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteWalletMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteWallet>>
+>;
+
+export type DeleteWalletMutationError = ErrorType<void>;
+
+/**
+ * @summary Remove a wallet
+ */
+export const useDeleteWallet = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteWallet>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteWallet>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  return useMutation(getDeleteWalletMutationOptions(options));
+};
+
+/**
+ * @summary List all vesting schedules
+ */
+export const getListVestingSchedulesUrl = (
+  params?: ListVestingSchedulesParams,
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/vesting?${stringifiedParams}`
+    : `/api/vesting`;
+};
+
+export const listVestingSchedules = async (
+  params?: ListVestingSchedulesParams,
+  options?: RequestInit,
+): Promise<VestingSchedule[]> => {
+  return customFetch<VestingSchedule[]>(getListVestingSchedulesUrl(params), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListVestingSchedulesQueryKey = (
+  params?: ListVestingSchedulesParams,
+) => {
+  return [`/api/vesting`, ...(params ? [params] : [])] as const;
+};
+
+export const getListVestingSchedulesQueryOptions = <
+  TData = Awaited<ReturnType<typeof listVestingSchedules>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: ListVestingSchedulesParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listVestingSchedules>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getListVestingSchedulesQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof listVestingSchedules>>
+  > = ({ signal }) =>
+    listVestingSchedules(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listVestingSchedules>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListVestingSchedulesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listVestingSchedules>>
+>;
+export type ListVestingSchedulesQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List all vesting schedules
+ */
+
+export function useListVestingSchedules<
+  TData = Awaited<ReturnType<typeof listVestingSchedules>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: ListVestingSchedulesParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listVestingSchedules>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListVestingSchedulesQueryOptions(params, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Create a vesting schedule
+ */
+export const getCreateVestingScheduleUrl = () => {
+  return `/api/vesting`;
+};
+
+export const createVestingSchedule = async (
+  createVestingScheduleBody: CreateVestingScheduleBody,
+  options?: RequestInit,
+): Promise<VestingSchedule> => {
+  return customFetch<VestingSchedule>(getCreateVestingScheduleUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createVestingScheduleBody),
+  });
+};
+
+export const getCreateVestingScheduleMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createVestingSchedule>>,
+    TError,
+    { data: BodyType<CreateVestingScheduleBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createVestingSchedule>>,
+  TError,
+  { data: BodyType<CreateVestingScheduleBody> },
+  TContext
+> => {
+  const mutationKey = ["createVestingSchedule"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createVestingSchedule>>,
+    { data: BodyType<CreateVestingScheduleBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createVestingSchedule(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateVestingScheduleMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createVestingSchedule>>
+>;
+export type CreateVestingScheduleMutationBody =
+  BodyType<CreateVestingScheduleBody>;
+export type CreateVestingScheduleMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Create a vesting schedule
+ */
+export const useCreateVestingSchedule = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createVestingSchedule>>,
+    TError,
+    { data: BodyType<CreateVestingScheduleBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createVestingSchedule>>,
+  TError,
+  { data: BodyType<CreateVestingScheduleBody> },
+  TContext
+> => {
+  return useMutation(getCreateVestingScheduleMutationOptions(options));
+};
+
+/**
+ * @summary Get vesting schedule details
+ */
+export const getGetVestingScheduleUrl = (id: number) => {
+  return `/api/vesting/${id}`;
+};
+
+export const getVestingSchedule = async (
+  id: number,
+  options?: RequestInit,
+): Promise<VestingSchedule> => {
+  return customFetch<VestingSchedule>(getGetVestingScheduleUrl(id), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetVestingScheduleQueryKey = (id: number) => {
+  return [`/api/vesting/${id}`] as const;
+};
+
+export const getGetVestingScheduleQueryOptions = <
+  TData = Awaited<ReturnType<typeof getVestingSchedule>>,
+  TError = ErrorType<void>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getVestingSchedule>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetVestingScheduleQueryKey(id);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getVestingSchedule>>
+  > = ({ signal }) => getVestingSchedule(id, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getVestingSchedule>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetVestingScheduleQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getVestingSchedule>>
+>;
+export type GetVestingScheduleQueryError = ErrorType<void>;
+
+/**
+ * @summary Get vesting schedule details
+ */
+
+export function useGetVestingSchedule<
+  TData = Awaited<ReturnType<typeof getVestingSchedule>>,
+  TError = ErrorType<void>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getVestingSchedule>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetVestingScheduleQueryOptions(id, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Claim vested tokens
+ */
+export const getClaimVestingUrl = (id: number) => {
+  return `/api/vesting/${id}/claim`;
+};
+
+export const claimVesting = async (
+  id: number,
+  options?: RequestInit,
+): Promise<VestingSchedule> => {
+  return customFetch<VestingSchedule>(getClaimVestingUrl(id), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getClaimVestingMutationOptions = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof claimVesting>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof claimVesting>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ["claimVesting"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof claimVesting>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return claimVesting(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type ClaimVestingMutationResult = NonNullable<
+  Awaited<ReturnType<typeof claimVesting>>
+>;
+
+export type ClaimVestingMutationError = ErrorType<void>;
+
+/**
+ * @summary Claim vested tokens
+ */
+export const useClaimVesting = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof claimVesting>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof claimVesting>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  return useMutation(getClaimVestingMutationOptions(options));
+};
+
+/**
+ * @summary List all liquidity locks
+ */
+export const getListLiquidityLocksUrl = (params?: ListLiquidityLocksParams) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/liquidity?${stringifiedParams}`
+    : `/api/liquidity`;
+};
+
+export const listLiquidityLocks = async (
+  params?: ListLiquidityLocksParams,
+  options?: RequestInit,
+): Promise<LiquidityLock[]> => {
+  return customFetch<LiquidityLock[]>(getListLiquidityLocksUrl(params), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListLiquidityLocksQueryKey = (
+  params?: ListLiquidityLocksParams,
+) => {
+  return [`/api/liquidity`, ...(params ? [params] : [])] as const;
+};
+
+export const getListLiquidityLocksQueryOptions = <
+  TData = Awaited<ReturnType<typeof listLiquidityLocks>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: ListLiquidityLocksParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listLiquidityLocks>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getListLiquidityLocksQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof listLiquidityLocks>>
+  > = ({ signal }) => listLiquidityLocks(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listLiquidityLocks>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListLiquidityLocksQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listLiquidityLocks>>
+>;
+export type ListLiquidityLocksQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List all liquidity locks
+ */
+
+export function useListLiquidityLocks<
+  TData = Awaited<ReturnType<typeof listLiquidityLocks>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: ListLiquidityLocksParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listLiquidityLocks>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListLiquidityLocksQueryOptions(params, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Lock liquidity tokens
+ */
+export const getCreateLiquidityLockUrl = () => {
+  return `/api/liquidity`;
+};
+
+export const createLiquidityLock = async (
+  createLiquidityLockBody: CreateLiquidityLockBody,
+  options?: RequestInit,
+): Promise<LiquidityLock> => {
+  return customFetch<LiquidityLock>(getCreateLiquidityLockUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createLiquidityLockBody),
+  });
+};
+
+export const getCreateLiquidityLockMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createLiquidityLock>>,
+    TError,
+    { data: BodyType<CreateLiquidityLockBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createLiquidityLock>>,
+  TError,
+  { data: BodyType<CreateLiquidityLockBody> },
+  TContext
+> => {
+  const mutationKey = ["createLiquidityLock"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createLiquidityLock>>,
+    { data: BodyType<CreateLiquidityLockBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createLiquidityLock(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateLiquidityLockMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createLiquidityLock>>
+>;
+export type CreateLiquidityLockMutationBody = BodyType<CreateLiquidityLockBody>;
+export type CreateLiquidityLockMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Lock liquidity tokens
+ */
+export const useCreateLiquidityLock = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createLiquidityLock>>,
+    TError,
+    { data: BodyType<CreateLiquidityLockBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createLiquidityLock>>,
+  TError,
+  { data: BodyType<CreateLiquidityLockBody> },
+  TContext
+> => {
+  return useMutation(getCreateLiquidityLockMutationOptions(options));
+};
+
+/**
+ * @summary Get liquidity lock details
+ */
+export const getGetLiquidityLockUrl = (id: number) => {
+  return `/api/liquidity/${id}`;
+};
+
+export const getLiquidityLock = async (
+  id: number,
+  options?: RequestInit,
+): Promise<LiquidityLock> => {
+  return customFetch<LiquidityLock>(getGetLiquidityLockUrl(id), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetLiquidityLockQueryKey = (id: number) => {
+  return [`/api/liquidity/${id}`] as const;
+};
+
+export const getGetLiquidityLockQueryOptions = <
+  TData = Awaited<ReturnType<typeof getLiquidityLock>>,
+  TError = ErrorType<void>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getLiquidityLock>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetLiquidityLockQueryKey(id);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getLiquidityLock>>
+  > = ({ signal }) => getLiquidityLock(id, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getLiquidityLock>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetLiquidityLockQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getLiquidityLock>>
+>;
+export type GetLiquidityLockQueryError = ErrorType<void>;
+
+/**
+ * @summary Get liquidity lock details
+ */
+
+export function useGetLiquidityLock<
+  TData = Awaited<ReturnType<typeof getLiquidityLock>>,
+  TError = ErrorType<void>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getLiquidityLock>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetLiquidityLockQueryOptions(id, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Unlock liquidity (if lock period passed)
+ */
+export const getUnlockLiquidityUrl = (id: number) => {
+  return `/api/liquidity/${id}/unlock`;
+};
+
+export const unlockLiquidity = async (
+  id: number,
+  options?: RequestInit,
+): Promise<LiquidityLock> => {
+  return customFetch<LiquidityLock>(getUnlockLiquidityUrl(id), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getUnlockLiquidityMutationOptions = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof unlockLiquidity>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof unlockLiquidity>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ["unlockLiquidity"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof unlockLiquidity>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return unlockLiquidity(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UnlockLiquidityMutationResult = NonNullable<
+  Awaited<ReturnType<typeof unlockLiquidity>>
+>;
+
+export type UnlockLiquidityMutationError = ErrorType<void>;
+
+/**
+ * @summary Unlock liquidity (if lock period passed)
+ */
+export const useUnlockLiquidity = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof unlockLiquidity>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof unlockLiquidity>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  return useMutation(getUnlockLiquidityMutationOptions(options));
+};
+
+/**
+ * @summary Get full portfolio summary across all chains
+ */
+export const getGetPortfolioSummaryUrl = () => {
+  return `/api/portfolio/summary`;
+};
+
+export const getPortfolioSummary = async (
+  options?: RequestInit,
+): Promise<PortfolioSummary> => {
+  return customFetch<PortfolioSummary>(getGetPortfolioSummaryUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetPortfolioSummaryQueryKey = () => {
+  return [`/api/portfolio/summary`] as const;
+};
+
+export const getGetPortfolioSummaryQueryOptions = <
+  TData = Awaited<ReturnType<typeof getPortfolioSummary>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getPortfolioSummary>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetPortfolioSummaryQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getPortfolioSummary>>
+  > = ({ signal }) => getPortfolioSummary({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getPortfolioSummary>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetPortfolioSummaryQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getPortfolioSummary>>
+>;
+export type GetPortfolioSummaryQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get full portfolio summary across all chains
+ */
+
+export function useGetPortfolioSummary<
+  TData = Awaited<ReturnType<typeof getPortfolioSummary>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getPortfolioSummary>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetPortfolioSummaryQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Get portfolio breakdown by chain
+ */
+export const getGetPortfolioByChainUrl = () => {
+  return `/api/portfolio/by-chain`;
+};
+
+export const getPortfolioByChain = async (
+  options?: RequestInit,
+): Promise<ChainPortfolio[]> => {
+  return customFetch<ChainPortfolio[]>(getGetPortfolioByChainUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetPortfolioByChainQueryKey = () => {
+  return [`/api/portfolio/by-chain`] as const;
+};
+
+export const getGetPortfolioByChainQueryOptions = <
+  TData = Awaited<ReturnType<typeof getPortfolioByChain>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getPortfolioByChain>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetPortfolioByChainQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getPortfolioByChain>>
+  > = ({ signal }) => getPortfolioByChain({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getPortfolioByChain>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetPortfolioByChainQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getPortfolioByChain>>
+>;
+export type GetPortfolioByChainQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get portfolio breakdown by chain
+ */
+
+export function useGetPortfolioByChain<
+  TData = Awaited<ReturnType<typeof getPortfolioByChain>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getPortfolioByChain>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetPortfolioByChainQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Get token allocation breakdown
+ */
+export const getGetPortfolioAllocationsUrl = () => {
+  return `/api/portfolio/allocations`;
+};
+
+export const getPortfolioAllocations = async (
+  options?: RequestInit,
+): Promise<TokenAllocation[]> => {
+  return customFetch<TokenAllocation[]>(getGetPortfolioAllocationsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetPortfolioAllocationsQueryKey = () => {
+  return [`/api/portfolio/allocations`] as const;
+};
+
+export const getGetPortfolioAllocationsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getPortfolioAllocations>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getPortfolioAllocations>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetPortfolioAllocationsQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getPortfolioAllocations>>
+  > = ({ signal }) => getPortfolioAllocations({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getPortfolioAllocations>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetPortfolioAllocationsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getPortfolioAllocations>>
+>;
+export type GetPortfolioAllocationsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get token allocation breakdown
+ */
+
+export function useGetPortfolioAllocations<
+  TData = Awaited<ReturnType<typeof getPortfolioAllocations>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getPortfolioAllocations>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetPortfolioAllocationsQueryOptions(options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;

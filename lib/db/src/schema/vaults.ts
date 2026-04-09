@@ -11,6 +11,8 @@ export const vaultsTable = pgTable("vaults", {
   earnedRewards: text("earned_rewards").notNull().default("0"),
   lockDays: integer("lock_days").notNull(),
   status: text("status").notNull().default("active"),
+  chain: text("chain").notNull().default("Ethereum"),
+  contractAddress: text("contract_address"),
   depositedAt: timestamp("deposited_at", { withTimezone: true }).notNull().defaultNow(),
   maturesAt: timestamp("matures_at", { withTimezone: true }).notNull(),
   withdrawnAt: timestamp("withdrawn_at", { withTimezone: true }),

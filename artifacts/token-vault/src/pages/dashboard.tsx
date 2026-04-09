@@ -6,7 +6,7 @@ import {
 } from "@workspace/api-client-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { DollarSign, Lock, Award, ShieldCheck, ArrowUpRight, ArrowDownRight, RefreshCcw, Coins, Activity } from "lucide-react";
+import { DollarSign, Lock, Award, ShieldCheck, ArrowUpRight, ArrowDownRight, RefreshCcw, Coins, Activity, Link, Wallet } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
 import {
   BarChart,
@@ -72,8 +72,8 @@ export default function Dashboard() {
               ) : (
                 <>
                   <div className="text-2xl font-bold">{summary?.activeVaults || 0}</div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Avg lock: {summary?.avgLockPeriod || 0} days
+                  <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                    <Link className="h-3 w-3" /> {summary?.totalChains || 0} networks
                   </p>
                 </>
               )}
@@ -110,8 +110,8 @@ export default function Dashboard() {
               ) : (
                 <>
                   <div className="text-2xl font-bold">{summary?.maturedVaults || 0}</div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Ready to withdraw
+                  <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                    <Wallet className="h-3 w-3" /> {summary?.totalWallets || 0} wallets
                   </p>
                 </>
               )}

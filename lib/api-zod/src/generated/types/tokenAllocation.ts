@@ -6,12 +6,10 @@
  * OpenAPI spec version: 0.2.0
  */
 
-export interface CreateVaultBody {
-  name: string;
+export interface TokenAllocation {
   tokenSymbol: string;
-  amount: string;
-  /** @minimum 1 */
-  lockDays: number;
-  chain: string;
-  contractAddress?: string;
+  totalAmount: string;
+  percentage: number;
+  lockedInVaults: string;
+  inVesting: string;
 }

@@ -206,6 +206,16 @@ export default function VaultDetail() {
                   <span className="font-medium">{vault.rewardRate}%</span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-t border-border/50">
+                  <span className="text-muted-foreground text-sm">Network</span>
+                  <span className="font-medium">{vault.chain}</span>
+                </div>
+                {vault.contractAddress && (
+                  <div className="flex justify-between items-center py-2 border-t border-border/50">
+                    <span className="text-muted-foreground text-sm">Contract</span>
+                    <span className="font-mono text-sm">{vault.contractAddress.slice(0, 6)}...{vault.contractAddress.slice(-4)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between items-center py-2 border-t border-border/50">
                   <span className="text-muted-foreground text-sm">Total Value</span>
                   <span className="font-medium">
                     {(parseFloat(vault.amount) + parseFloat(vault.earnedRewards)).toFixed(2)} {vault.tokenSymbol}

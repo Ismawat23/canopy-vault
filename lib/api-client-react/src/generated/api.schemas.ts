@@ -3,7 +3,7 @@
  * Do not edit manually.
  * Api
  * Token Vault API specification
- * OpenAPI spec version: 0.1.0
+ * OpenAPI spec version: 0.2.0
  */
 export interface HealthStatus {
   status: string;
@@ -26,6 +26,8 @@ export interface Vault {
   earnedRewards: string;
   lockDays: number;
   status: VaultStatus;
+  chain: string;
+  contractAddress?: string | null;
   depositedAt: string;
   maturesAt: string;
   withdrawnAt?: string | null;
@@ -38,6 +40,8 @@ export interface CreateVaultBody {
   amount: string;
   /** @minimum 1 */
   lockDays: number;
+  chain: string;
+  contractAddress?: string;
 }
 
 export type TransactionType =
@@ -66,6 +70,8 @@ export interface DashboardSummary {
   maturedVaults: number;
   avgLockPeriod: number;
   totalDeposits: number;
+  totalChains: number;
+  totalWallets: number;
 }
 
 export interface VaultDistribution {
@@ -93,8 +99,127 @@ export interface ActivityItem {
   timestamp: string;
 }
 
+export interface Wallet {
+  id: number;
+  label: string;
+  address: string;
+  chain: string;
+  balance: string;
+  createdAt: string;
+}
+
+export interface CreateWalletBody {
+  label: string;
+  address: string;
+  chain: string;
+  balance: string;
+}
+
+export type VestingScheduleStatus =
+  (typeof VestingScheduleStatus)[keyof typeof VestingScheduleStatus];
+
+export const VestingScheduleStatus = {
+  active: "active",
+  completed: "completed",
+} as const;
+
+export interface VestingSchedule {
+  id: number;
+  name: string;
+  beneficiary: string;
+  tokenSymbol: string;
+  totalAmount: string;
+  releasedAmount: string;
+  claimableAmount: string;
+  cliffDays: number;
+  vestingDays: number;
+  status: VestingScheduleStatus;
+  chain: string;
+  contractAddress?: string | null;
+  startDate: string;
+  cliffDate: string;
+  endDate: string;
+  createdAt: string;
+}
+
+export interface CreateVestingScheduleBody {
+  name: string;
+  beneficiary: string;
+  tokenSymbol: string;
+  totalAmount: string;
+  /** @minimum 0 */
+  cliffDays: number;
+  /** @minimum 1 */
+  vestingDays: number;
+  chain: string;
+  contractAddress?: string;
+}
+
+export type LiquidityLockStatus =
+  (typeof LiquidityLockStatus)[keyof typeof LiquidityLockStatus];
+
+export const LiquidityLockStatus = {
+  locked: "locked",
+  unlocked: "unlocked",
+} as const;
+
+export interface LiquidityLock {
+  id: number;
+  name: string;
+  tokenPair: string;
+  dex: string;
+  chain: string;
+  lpTokenAmount: string;
+  lockDays: number;
+  status: LiquidityLockStatus;
+  contractAddress?: string | null;
+  lockedAt: string;
+  unlocksAt: string;
+  unlockedAt?: string | null;
+  createdAt: string;
+}
+
+export interface CreateLiquidityLockBody {
+  name: string;
+  tokenPair: string;
+  dex: string;
+  chain: string;
+  lpTokenAmount: string;
+  /** @minimum 1 */
+  lockDays: number;
+  contractAddress?: string;
+}
+
+export interface PortfolioSummary {
+  totalValue: string;
+  totalLocked: string;
+  totalVesting: string;
+  totalLiquidity: string;
+  totalRewards: string;
+  activeChains: number;
+  connectedWallets: number;
+  activePositions: number;
+}
+
+export interface ChainPortfolio {
+  chain: string;
+  totalValue: string;
+  vaultCount: number;
+  vestingCount: number;
+  liquidityCount: number;
+}
+
+export interface TokenAllocation {
+  tokenSymbol: string;
+  totalAmount: string;
+  percentage: number;
+  lockedInVaults: string;
+  inVesting: string;
+}
+
 export type ListVaultsParams = {
   status?: ListVaultsStatus;
+  chain?: string;
 };
 
 export type ListVaultsStatus =
@@ -126,3 +251,29 @@ export const ListTransactionsType = {
 export type GetRecentActivityParams = {
   limit?: number;
 };
+
+export type ListVestingSchedulesParams = {
+  status?: ListVestingSchedulesStatus;
+};
+
+export type ListVestingSchedulesStatus =
+  (typeof ListVestingSchedulesStatus)[keyof typeof ListVestingSchedulesStatus];
+
+export const ListVestingSchedulesStatus = {
+  active: "active",
+  completed: "completed",
+  all: "all",
+} as const;
+
+export type ListLiquidityLocksParams = {
+  status?: ListLiquidityLocksStatus;
+};
+
+export type ListLiquidityLocksStatus =
+  (typeof ListLiquidityLocksStatus)[keyof typeof ListLiquidityLocksStatus];
+
+export const ListLiquidityLocksStatus = {
+  locked: "locked",
+  unlocked: "unlocked",
+  all: "all",
+} as const;

@@ -3,7 +3,7 @@
  * Do not edit manually.
  * Api
  * Token Vault API specification
- * OpenAPI spec version: 0.1.0
+ * OpenAPI spec version: 0.2.0
  */
 
 export interface DashboardSummary {
@@ -13,4 +13,6 @@ export interface DashboardSummary {
   maturedVaults: number;
   avgLockPeriod: number;
   totalDeposits: number;
+  totalChains: number;
+  totalWallets: number;
 }

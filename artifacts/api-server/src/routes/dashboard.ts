@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { desc, sql } from "drizzle-orm";
-import { db, vaultsTable, transactionsTable } from "@workspace/db";
+import { db, vaultsTable, transactionsTable, walletsTable } from "@workspace/db";
 import {
   GetDashboardSummaryResponse,
   GetVaultDistributionResponse,
@@ -11,7 +11,10 @@ import {
 const router: IRouter = Router();
 
 router.get("/dashboard/summary", async (_req, res): Promise<void> => {
-  const vaults = await db.select().from(vaultsTable);
+  const [vaults, wallets] = await Promise.all([
+    db.select().from(vaultsTable),
+    db.select().from(walletsTable),
+  ]);
 
   const now = new Date();
   let totalValueLocked = 0;
@@ -19,6 +22,7 @@ router.get("/dashboard/summary", async (_req, res): Promise<void> => {
   let maturedCount = 0;
   let totalRewards = 0;
   let totalLockDays = 0;
+  const chainSet = new Set<string>();
 
   for (const v of vaults) {
     const status =
@@ -44,6 +48,7 @@ router.get("/dashboard/summary", async (_req, res): Promise<void> => {
       totalRewards += parseFloat(v.earnedRewards);
     }
     totalLockDays += v.lockDays;
+    chainSet.add(v.chain);
   }
 
   const summary = {
@@ -53,6 +58,8 @@ router.get("/dashboard/summary", async (_req, res): Promise<void> => {
     maturedVaults: maturedCount,
     avgLockPeriod: vaults.length > 0 ? Math.round(totalLockDays / vaults.length) : 0,
     totalDeposits: vaults.length,
+    totalChains: chainSet.size,
+    totalWallets: wallets.length,
   };
 
   res.json(GetDashboardSummaryResponse.parse(summary));

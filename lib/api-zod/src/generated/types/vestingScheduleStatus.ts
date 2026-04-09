@@ -6,10 +6,10 @@
  * OpenAPI spec version: 0.2.0
  */
 
-export type VaultStatus = (typeof VaultStatus)[keyof typeof VaultStatus];
+export type VestingScheduleStatus =
+  (typeof VestingScheduleStatus)[keyof typeof VestingScheduleStatus];
 
-export const VaultStatus = {
+export const VestingScheduleStatus = {
   active: "active",
-  matured: "matured",
-  withdrawn: "withdrawn",
+  completed: "completed",
 } as const;

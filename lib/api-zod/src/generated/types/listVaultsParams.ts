@@ -3,10 +3,11 @@
  * Do not edit manually.
  * Api
  * Token Vault API specification
- * OpenAPI spec version: 0.1.0
+ * OpenAPI spec version: 0.2.0
  */
 import type { ListVaultsStatus } from "./listVaultsStatus";
 
 export type ListVaultsParams = {
   status?: ListVaultsStatus;
+  chain?: string;
 };

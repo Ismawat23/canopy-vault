@@ -15,11 +15,13 @@ type VaultStatus = "active" | "matured" | "withdrawn" | "all";
 
 export default function Vaults() {
   const [statusFilter, setStatusFilter] = useState<VaultStatus>("all");
+  const [chainFilter, setChainFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
 
-  const { data: vaults, isLoading } = useListVaults(
-    statusFilter === "all" ? {} : { status: statusFilter }
-  );
+  const { data: vaults, isLoading } = useListVaults({
+    ...(statusFilter !== "all" ? { status: statusFilter } : {}),
+    ...(chainFilter !== "all" ? { chain: chainFilter } : {})
+  });
 
   const filteredVaults = vaults?.filter(vault => 
     vault.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -48,14 +50,28 @@ export default function Vaults() {
             />
           </div>
           <Select value={statusFilter} onValueChange={(val) => setStatusFilter(val as VaultStatus)}>
-            <SelectTrigger className="w-full sm:w-[180px]">
+            <SelectTrigger className="w-full sm:w-[160px]">
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Vaults</SelectItem>
+              <SelectItem value="all">All Status</SelectItem>
               <SelectItem value="active">Active</SelectItem>
               <SelectItem value="matured">Matured</SelectItem>
               <SelectItem value="withdrawn">Withdrawn</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={chainFilter} onValueChange={setChainFilter}>
+            <SelectTrigger className="w-full sm:w-[160px]">
+              <SelectValue placeholder="Filter by network" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Networks</SelectItem>
+              <SelectItem value="Ethereum">Ethereum</SelectItem>
+              <SelectItem value="BSC">BSC</SelectItem>
+              <SelectItem value="Polygon">Polygon</SelectItem>
+              <SelectItem value="Arbitrum">Arbitrum</SelectItem>
+              <SelectItem value="Optimism">Optimism</SelectItem>
+              <SelectItem value="Avalanche">Avalanche</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -99,6 +115,7 @@ export default function Vaults() {
                           } className={vault.status === 'matured' ? 'bg-green-500/20 text-green-500 hover:bg-green-500/30' : ''}>
                             {vault.status}
                           </Badge>
+                          <Badge variant="outline" className="bg-background text-xs text-muted-foreground shrink-0">{vault.chain}</Badge>
                         </div>
                         <p className="text-sm text-muted-foreground mt-1">
                           Locked {formatDistanceToNow(new Date(vault.depositedAt), { addSuffix: true })}
