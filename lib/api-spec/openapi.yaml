@@ -3,13 +3,19 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Token Vault API specification
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: vaults
+    description: Vault management
+  - name: transactions
+    description: Transaction history
+  - name: dashboard
+    description: Dashboard summaries
 paths:
   /healthz:
     get:
@@ -24,6 +30,171 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /vaults:
+    get:
+      operationId: listVaults
+      tags: [vaults]
+      summary: List all vaults
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, matured, withdrawn, all]
+            default: all
+      responses:
+        "200":
+          description: List of vaults
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Vault"
+    post:
+      operationId: createVault
+      tags: [vaults]
+      summary: Create a new vault (deposit tokens)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateVaultBody"
+      responses:
+        "201":
+          description: Vault created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Vault"
+
+  /vaults/{id}:
+    get:
+      operationId: getVault
+      tags: [vaults]
+      summary: Get vault details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Vault details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Vault"
+        "404":
+          description: Vault not found
+
+  /vaults/{id}/withdraw:
+    post:
+      operationId: withdrawVault
+      tags: [vaults]
+      summary: Withdraw tokens from a matured vault
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Withdrawal successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Vault"
+        "400":
+          description: Vault not matured or already withdrawn
+        "404":
+          description: Vault not found
+
+  /transactions:
+    get:
+      operationId: listTransactions
+      tags: [transactions]
+      summary: List transaction history
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [deposit, withdrawal, reward, all]
+            default: all
+      responses:
+        "200":
+          description: Transaction list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Transaction"
+
+  /dashboard/summary:
+    get:
+      operationId: getDashboardSummary
+      tags: [dashboard]
+      summary: Get dashboard summary stats
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+
+  /dashboard/vault-distribution:
+    get:
+      operationId: getVaultDistribution
+      tags: [dashboard]
+      summary: Get vault distribution by lock period
+      responses:
+        "200":
+          description: Distribution data
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/VaultDistribution"
+
+  /dashboard/activity:
+    get:
+      operationId: getRecentActivity
+      tags: [dashboard]
+      summary: Get recent vault activity feed
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        "200":
+          description: Recent activity
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ActivityItem"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +205,156 @@ components:
       required:
         - status
 
+    Vault:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        tokenSymbol:
+          type: string
+        amount:
+          type: string
+        rewardRate:
+          type: string
+        earnedRewards:
+          type: string
+        lockDays:
+          type: integer
+        status:
+          type: string
+          enum: [active, matured, withdrawn]
+        depositedAt:
+          type: string
+          format: date-time
+        maturesAt:
+          type: string
+          format: date-time
+        withdrawnAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - tokenSymbol
+        - amount
+        - rewardRate
+        - earnedRewards
+        - lockDays
+        - status
+        - depositedAt
+        - maturesAt
+        - createdAt
+
+    CreateVaultBody:
+      type: object
+      properties:
+        name:
+          type: string
+        tokenSymbol:
+          type: string
+        amount:
+          type: string
+        lockDays:
+          type: integer
+          minimum: 1
+      required:
+        - name
+        - tokenSymbol
+        - amount
+        - lockDays
+
+    Transaction:
+      type: object
+      properties:
+        id:
+          type: integer
+        vaultId:
+          type: integer
+        type:
+          type: string
+          enum: [deposit, withdrawal, reward]
+        tokenSymbol:
+          type: string
+        amount:
+          type: string
+        txHash:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - vaultId
+        - type
+        - tokenSymbol
+        - amount
+        - createdAt
+
+    DashboardSummary:
+      type: object
+      properties:
+        totalValueLocked:
+          type: string
+        activeVaults:
+          type: integer
+        totalRewardsEarned:
+          type: string
+        maturedVaults:
+          type: integer
+        avgLockPeriod:
+          type: number
+        totalDeposits:
+          type: integer
+      required:
+        - totalValueLocked
+        - activeVaults
+        - totalRewardsEarned
+        - maturedVaults
+        - avgLockPeriod
+        - totalDeposits
+
+    VaultDistribution:
+      type: object
+      properties:
+        lockPeriod:
+          type: string
+        count:
+          type: integer
+        totalValue:
+          type: string
+      required:
+        - lockPeriod
+        - count
+        - totalValue
+
+    ActivityItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+          enum: [deposit, withdrawal, matured, reward]
+        vaultName:
+          type: string
+        tokenSymbol:
+          type: string
+        amount:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+      required:
+        - id
+        - type
+        - vaultName
+        - tokenSymbol
+        - amount
+        - timestamp
