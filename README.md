@@ -4,12 +4,6 @@
 
 ---
 
-## 📸 Preview
-
-![Canopy Vault Dashboard](artifacts/token-vault/public/canopy-vault-logo.png)
-
----
-
 ## ✨ Features
 
 | Feature | Description |
@@ -62,15 +56,14 @@ canopy-vault/
 
 ```bash
 # Clone the repository
-git clone https://github.com/YOUR_USERNAME/canopy-vault.git
+git clone https://github.com/Ismawat23/canopy-vault.git
 cd canopy-vault
 
 # Install dependencies
 pnpm install
 
 # Set up environment variables
-cp .env.example .env
-# Add your DATABASE_URL and SESSION_SECRET to .env
+# Add your DATABASE_URL and SESSION_SECRET to environment
 
 # Push database schema
 pnpm --filter @workspace/db run db:push
