@@ -110,9 +110,6 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 - Ethereum (ETH)
 - Polygon (MATIC)
 - BNB Smart Chain (BNB)
-- Arbitrum (ARB)
-- Optimism (OP)
-- Avalanche (AVAX)
 
 ---
 
