@@ -16,7 +16,7 @@
 |--------|-------------|
 | 🔒 **Token Vault Locking** | Lock tokens for 30–365+ days and earn up to 14% APY rewards |
 | 📅 **Vesting Schedules** | Create linear token release schedules with custom cliff periods |
-| 🌐 **Multi-Chain Support** | Ethereum, Polygon, BSC, Arbitrum, Optimism, Avalanche |
+| 🌐 **Multi-Chain Support** | Ethereum, Polygon, BSC |
 | 📊 **Portfolio Tracker** | Real-time charts for value by chain and token allocation |
 | 💧 **Liquidity Locking** | Lock LP tokens across Uniswap, PancakeSwap, QuickSwap, and more |
 | 👛 **Wallet Management** | Connect and track wallets with balances across all chains |
