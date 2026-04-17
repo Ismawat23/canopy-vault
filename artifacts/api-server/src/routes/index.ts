@@ -7,6 +7,7 @@ import walletsRouter from "./wallets";
 import vestingRouter from "./vesting";
 import liquidityRouter from "./liquidity";
 import portfolioRouter from "./portfolio";
+import canopyRouter from "./canopy";
 
 const router: IRouter = Router();
 
@@ -18,5 +19,6 @@ router.use(walletsRouter);
 router.use(vestingRouter);
 router.use(liquidityRouter);
 router.use(portfolioRouter);
+router.use(canopyRouter);
 
 export default router;

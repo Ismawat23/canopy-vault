@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import logoUrl from "/canopy-vault-logo.png";
+import { ChainStatus } from "@/components/chain-status";
 
 interface LayoutProps {
   children: ReactNode;
@@ -130,9 +131,8 @@ export function Layout({ children }: LayoutProps) {
           </nav>
 
           <div className="p-4 border-t border-border">
-            <div className="flex items-center gap-2.5 px-3 py-2 text-sm font-medium text-muted-foreground">
-              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse shrink-0"></div>
-              Mainnet Connected
+            <div className="px-3 py-2">
+              <ChainStatus />
             </div>
           </div>
         </aside>
