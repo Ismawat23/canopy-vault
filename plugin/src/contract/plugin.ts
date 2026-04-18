@@ -4,6 +4,7 @@ import * as net from 'net';
 import * as path from 'path';
 import * as fs from 'fs/promises';
 import Long from 'long';
+import { Reader } from 'protobufjs/minimal';
 
 import { types } from '../proto/types.js';
 
@@ -395,6 +396,92 @@ export function Unmarshal<T>(
     }
 }
 
+// ─── Custom message decoders ─────────────────────────────────────────────────
+// These decode the binary protobuf Any.value for the 3 vault message types.
+// They live here (in plugin.ts) to avoid circular imports: contract.ts already
+// imports from plugin.ts, so decoders must be defined here and re-exported.
+
+export interface DecodedLockVault {
+    ownerAddress: Uint8Array;
+    amount: Long;
+    lockDays: Long;
+    vaultName: string;
+    tokenSymbol: string;
+}
+
+export interface DecodedWithdrawVault {
+    ownerAddress: Uint8Array;
+    vaultId: Long;
+}
+
+export interface DecodedVestRelease {
+    adminAddress: Uint8Array;
+    beneficiaryAddress: Uint8Array;
+    amount: Long;
+    vestId: Long;
+}
+
+/** decodeLockVault manually decodes a MessageLockVault from protobuf bytes */
+export function decodeLockVault(bytes: Uint8Array): DecodedLockVault {
+    const reader = Reader.create(Buffer.from(bytes));
+    const end = reader.len;
+    let ownerAddress: Uint8Array = new Uint8Array();
+    let amount = Long.UZERO;
+    let lockDays = Long.UZERO;
+    let vaultName = '';
+    let tokenSymbol = '';
+    while (reader.pos < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+            case 1: ownerAddress = reader.bytes(); break;
+            case 2: amount = reader.uint64() as Long; break;
+            case 3: lockDays = reader.uint64() as Long; break;
+            case 4: vaultName = reader.string(); break;
+            case 5: tokenSymbol = reader.string(); break;
+            default: reader.skipType(tag & 7); break;
+        }
+    }
+    return { ownerAddress, amount, lockDays, vaultName, tokenSymbol };
+}
+
+/** decodeWithdrawVault manually decodes a MessageWithdrawVault from protobuf bytes */
+export function decodeWithdrawVault(bytes: Uint8Array): DecodedWithdrawVault {
+    const reader = Reader.create(Buffer.from(bytes));
+    const end = reader.len;
+    let ownerAddress: Uint8Array = new Uint8Array();
+    let vaultId = Long.UZERO;
+    while (reader.pos < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+            case 1: ownerAddress = reader.bytes(); break;
+            case 2: vaultId = reader.uint64() as Long; break;
+            default: reader.skipType(tag & 7); break;
+        }
+    }
+    return { ownerAddress, vaultId };
+}
+
+/** decodeVestRelease manually decodes a MessageVestRelease from protobuf bytes */
+export function decodeVestRelease(bytes: Uint8Array): DecodedVestRelease {
+    const reader = Reader.create(Buffer.from(bytes));
+    const end = reader.len;
+    let adminAddress: Uint8Array = new Uint8Array();
+    let beneficiaryAddress: Uint8Array = new Uint8Array();
+    let amount = Long.UZERO;
+    let vestId = Long.UZERO;
+    while (reader.pos < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+            case 1: adminAddress = reader.bytes(); break;
+            case 2: beneficiaryAddress = reader.bytes(); break;
+            case 3: amount = reader.uint64() as Long; break;
+            case 4: vestId = reader.uint64() as Long; break;
+            default: reader.skipType(tag & 7); break;
+        }
+    }
+    return { adminAddress, beneficiaryAddress, amount, vestId };
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function FromAny(any: any): [any | null, string | null, IPluginError | null] {
     if (!any || !any.value) {
@@ -408,7 +495,15 @@ export function FromAny(any: any): [any | null, string | null, IPluginError | nu
         if (typeUrl.includes('MessageSend')) {
             return [types.MessageSend.decode(any.value), 'MessageSend', null];
         }
-        // NOTE: To add new message types, see TUTORIAL.md
+        if (typeUrl.includes('MessageLockVault')) {
+            return [decodeLockVault(any.value), 'MessageLockVault', null];
+        }
+        if (typeUrl.includes('MessageWithdrawVault')) {
+            return [decodeWithdrawVault(any.value), 'MessageWithdrawVault', null];
+        }
+        if (typeUrl.includes('MessageVestRelease')) {
+            return [decodeVestRelease(any.value), 'MessageVestRelease', null];
+        }
         return [null, null, ErrInvalidMessageCast()];
     } catch (err) {
         return [null, null, ErrFromAny(err as Error)];

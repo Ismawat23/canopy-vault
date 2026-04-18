@@ -39,11 +39,55 @@ message MessageSend {
   uint64 amount = 3;
 }
 
+// MessageLockVault locks tokens into a time-locked vault on the Canopy chain.
+// The plugin deducts `amount` from the owner's account, creates a VaultRecord
+// in chain state, and assigns a monotonic vault ID from the on-chain counter.
+message MessageLockVault {
+  // owner_address: 20-byte address of the vault owner (authorized signer)
+  bytes owner_address = 1; // @gotags: json:"ownerAddress"
+  // amount: tokens to lock, in uCNPY
+  uint64 amount = 2;
+  // lock_days: lock period in days; determines reward rate on-chain
+  uint64 lock_days = 3; // @gotags: json:"lockDays"
+  // vault_name: human-readable label for the vault
+  string vault_name = 4; // @gotags: json:"vaultName"
+  // token_symbol: e.g. "CNPY"
+  string token_symbol = 5; // @gotags: json:"tokenSymbol"
+}
+
+// MessageWithdrawVault redeems a matured vault, returning principal + earned rewards
+// to the owner. The plugin verifies maturity date and ownership against chain state.
+message MessageWithdrawVault {
+  // owner_address: 20-byte address — must match the vault owner in chain state
+  bytes owner_address = 1; // @gotags: json:"ownerAddress"
+  // vault_id: on-chain vault ID assigned at lock time
+  uint64 vault_id = 2; // @gotags: json:"vaultId"
+}
+
+// MessageVestRelease releases vested tokens from admin to beneficiary.
+// Admin is the authorized signer; new tokens are minted to beneficiary.
+message MessageVestRelease {
+  // admin_address: 20-byte address of the admin (authorized signer)
+  bytes admin_address = 1; // @gotags: json:"adminAddress"
+  // beneficiary_address: 20-byte address that receives the vested tokens
+  bytes beneficiary_address = 2; // @gotags: json:"beneficiaryAddress"
+  // amount: tokens to release, in uCNPY
+  uint64 amount = 3;
+  // vest_id: vesting schedule ID for reference
+  uint64 vest_id = 4; // @gotags: json:"vestId"
+}
+
 // FeeParams is the parameter space that defines various amounts for transaction fees
 message FeeParams {
   // send_fee: is the fee amount (in uCNPY) for Message Send
   uint64 send_fee = 1; // @gotags: json:"sendFee"
-  // NO CONFLICT STARTING AT FIELD = 14
+  // lock_vault_fee: fee for MessageLockVault
+  uint64 lock_vault_fee = 14; // @gotags: json:"lockVaultFee"
+  // withdraw_vault_fee: fee for MessageWithdrawVault
+  uint64 withdraw_vault_fee = 15; // @gotags: json:"withdrawVaultFee"
+  // vest_release_fee: fee for MessageVestRelease
+  uint64 vest_release_fee = 16; // @gotags: json:"vestReleaseFee"
+  // NO CONFLICT STARTING AT FIELD = 17
 }
 
 // A Signature is a digital signature is a cryptographic "fingerprint" created with a private key,
@@ -54,5 +98,3 @@ message Signature {
   // signature: the bytes of the signature output from a private key which may be verified with the message and public
   bytes signature = 2;
 }
-
-// NOTE: To add new transaction types (like MessageReward, MessageFaucet), see TUTORIAL.md
