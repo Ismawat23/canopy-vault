@@ -5,7 +5,8 @@
     "type": "module",
     "scripts": {
         "build:proto": "pbjs -t static-module -w commonjs -o src/proto/index.js proto/*.proto && pbts -o src/proto/index.d.ts src/proto/index.js && cp src/proto/index.js src/proto/index.cjs",
-        "test": "npx tsx src/rpc_test.ts"
+        "test": "npx tsx src/rpc_test.ts",
+        "test:vault": "npx tsx src/rpc_vault_test.ts"
     },
     "dependencies": {
         "@noble/curves": "^2.0.1",
